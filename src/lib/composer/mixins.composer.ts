@@ -6,10 +6,9 @@ import {ExtractFromMixin, Mixin} from "./mixin.artisan";
 import {Merge} from "type-fest";
 import {ExtractFromType} from "../types/utils.types";
 
-type MixinsArray = [Mixin<unknown>, ...Mixin<unknown>[]]
-type UnknownType = Type<unknown>
+type MixinsArray = [Mixin, ...Mixin[]]
 
-export type RecursiveMergeMixins<M extends any[], PreviousType = Record<string, unknown>, ReturnType = any> = {
+export type RecursiveMergeMixins<M extends unknown[], PreviousType = Record<string, unknown>, ReturnType = unknown> = {
   'next': M extends [infer First extends Mixin, ...infer Next extends Mixin[]]
     ? Next extends []
       ? RecursiveMergeMixins<[], void, Merge<PreviousType, ExtractFromMixin<First>>>
@@ -18,10 +17,9 @@ export type RecursiveMergeMixins<M extends any[], PreviousType = Record<string, 
   'done': ReturnType
 }[M extends [] ? 'done' : 'next']
 
-export const MixinsComposer =
-  <Fns extends MixinsArray, Base extends Type>
-  (mixins: Fns, baseClass: Base, reversed = true)
-    : Type<ExtractFromType<Base> & RecursiveMergeMixins<Fns>> => {
+export type MixinsComposerType = <Fns extends MixinsArray, Base extends Type>(mixins: Fns, baseClass: Base, reversed?: boolean) => Type<ExtractFromType<Base> & RecursiveMergeMixins<Fns>>
+export const MixinsComposer: MixinsComposerType =
+  (mixins, baseClass, reversed = true) => {
     const processableMixins = reversed ? mixins.reverse() : mixins
     const remaining: [Mixin<unknown>, ...Mixin<unknown>[]] = tail(processableMixins)
     const currentMixin = head(mixins)
@@ -31,3 +29,6 @@ export const MixinsComposer =
     }
     return currentMixin(baseClass)
   }
+
+export class NoopMixinBase {
+}
